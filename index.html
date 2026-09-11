@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Session Viewer</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<a class="skip" href="#reader">Skip to transcript</a>
+
+<header>
+  <button id="library-toggle" class="icon" title="Show sessions" aria-label="Show sessions" aria-expanded="false">☰</button>
+  <button class="wordmark" id="home" title="Back to the archive">AI sessions</button>
+  <div id="session-head">
+    <div id="session-title"><span id="session-source" class="source-tag" hidden></span>Choose a transcript to begin</div>
+    <div id="session-meta"></div>
+  </div>
+  <div class="head-actions">
+    <button id="split-button" title="Compare two sessions (s)" aria-pressed="false">Split</button>
+    <button id="follow-button" title="Follow new records as they are written" aria-pressed="true">Following</button>
+    <button id="focus-button" title="Hide tools and bookkeeping (f)" aria-pressed="false">Focus</button>
+    <button id="outline-button" title="Outline and raw records (o)" aria-pressed="false">Outline</button>
+    <button id="insights-button" title="Session insights">Insights</button>
+    <button id="organize-button" title="Title, tags and notes">Organize</button>
+    <button id="export-button" title="Download this session as Markdown">Export</button>
+    <button id="share-button" title="Open this viewer on your phone (m)" aria-pressed="false">Mobile</button>
+    <button id="search-button" title="Search every session (/)">Search</button>
+    <button id="controls-button" title="Reading controls (a)">Aa</button>
+    <button id="help-button" class="icon" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts">?</button>
+  </div>
+</header>
+<div id="progress"><span id="progress-bar"></span></div>
+
+<div id="layout">
+  <aside id="library" aria-label="Session library">
+    <div class="library-top">
+      <span id="session-count">Loading archive…</span>
+      <button id="refresh" title="Rescan transcripts on disk">Refresh</button>
+    </div>
+    <div class="library-filters">
+      <input id="library-filter" type="search" placeholder="Filter by title or project" autocomplete="off" aria-label="Filter sessions">
+      <div class="filter-row">
+        <select id="source-filter" aria-label="Filter by assistant">
+          <option value="">All assistants</option>
+          <option value="Claude">Claude</option>
+          <option value="Codex">Codex</option>
+        </select>
+        <select id="project-filter" aria-label="Filter by project"><option value="">All projects</option></select>
+        <select id="sort-order" aria-label="Sort sessions">
+          <option value="recent">Newest first</option>
+          <option value="oldest">Oldest first</option>
+          <option value="turns">Most turns</option>
+          <option value="size">Largest</option>
+        </select>
+        <select id="saved-filter" aria-label="Filter saved sessions"><option value="">All sessions</option><option value="starred">Starred</option><option value="tagged">Tagged</option></select>
+      </div>
+    </div>
+    <div id="session-list"></div>
+  </aside>
+
+  <main id="reader">
+    <div id="empty">
+      <h1>Your session archive</h1>
+      <p>Every Claude Code and Codex transcript on this machine, read as prose. Pick a session from the index — your reading preferences and place are remembered locally.</p>
+      <p class="keys"><kbd>/</kbd> search <kbd>f</kbd> focus <kbd>j</kbd><kbd>k</kbd> move turns <kbd>?</kbd> all shortcuts</p>
+    </div>
+    <div class="load-actions top"><button id="load-earlier" hidden>Load earlier records</button></div>
+    <div id="transcript"></div>
+    <div class="load-actions"><button id="load-more" hidden>Load more records</button><button id="load-all" hidden>Load entire session</button></div>
+  </main>
+
+  <main id="split-reader" hidden aria-label="Comparison transcript">
+    <div class="split-head">
+      <div id="split-meta">Pick a session from the library to compare — hold Shift to choose which pane.</div>
+      <button id="split-close" class="icon" title="Close split view" aria-label="Close split view">✕</button>
+    </div>
+    <div id="split-transcript"></div>
+    <div class="load-actions"><button id="split-load-more" hidden>Load more records</button><button id="split-load-all" hidden>Load entire session</button></div>
+  </main>
+
+  <aside id="details" class="closed" aria-label="Record details">
+    <div class="pane-head">
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-tab="outline" role="tab" aria-selected="true">Outline</button>
+        <button class="tab" data-tab="raw" role="tab" aria-selected="false">Raw record</button>
+      </div>
+      <button data-close="details" class="icon" aria-label="Close details">✕</button>
+    </div>
+    <div id="tab-outline" class="tab-body"><p class="hint">Turns in this session appear here once a transcript is open.</p></div>
+    <div id="tab-raw" class="tab-body" hidden><pre id="raw-json">Select a turn or tool to inspect its raw record.</pre></div>
+  </aside>
+</div>
+
+<div id="insights" class="panel closed" role="dialog" aria-label="Session insights">
+  <div class="pane-head"><span>Session insights</span><button data-close="insights" class="icon" aria-label="Close">✕</button></div>
+  <div id="insights-body" class="panel-body"></div>
+</div>
+
+<div id="organize" class="panel closed" role="dialog" aria-label="Organize session">
+  <div class="pane-head"><span>Organize this session</span><button data-close="organize" class="icon" aria-label="Close">✕</button></div>
+  <div class="panel-body organize-body">
+    <label>Custom title<input id="saved-title" placeholder="Keep transcript title"></label>
+    <label>Tags <input id="saved-tags" placeholder="research, pricing, follow-up"></label>
+    <label>Private note<textarea id="saved-note" placeholder="Why this session matters…"></textarea></label>
+    <label class="check"><input id="saved-star" type="checkbox"> Star this session</label>
+    <div class="organize-actions"><button id="saved-clear" type="button">Clear saved details</button><button id="saved-save" type="button">Save locally</button></div>
+  </div>
+</div>
+
+<div id="controls" class="panel closed" role="dialog" aria-label="Reading controls">
+  <div class="pane-head"><span>Reading controls</span><button data-close="controls" class="icon" aria-label="Close">✕</button></div>
+  <div class="panel-body">
+    <label>Font size <output id="font-size-out"></output><input id="font-size" type="range" min="13" max="24"></label>
+    <label>Font family <select id="font-family"><option value="serif">Serif</option><option value="sans">Sans</option><option value="mono">Mono</option></select></label>
+    <label>Line width <output id="width-out"></output><input id="line-width" type="range" min="50" max="110"></label>
+    <label>Line height <output id="height-out"></output><input id="line-height" type="range" min="13" max="20"></label>
+    <label>Theme <select id="theme"><option value="auto">Match system</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
+    <label>Density <select id="density"><option value="comfortable">Comfortable</option><option value="compact">Compact</option></select></label>
+    <label>Tool details <select id="tool-view"><option value="full">Command and result</option><option value="result">Result only</option><option value="hidden">Collapsed only</option></select></label>
+    <label class="check" title="System reminders, environment context and slash-command plumbing"><input id="reminders" type="checkbox"> Show harness scaffolding</label>
+    <label class="check"><input id="timestamps" type="checkbox"> Show turn timestamps</label>
+    <label class="check"><input id="tokens" type="checkbox"> Show token accounting</label>
+  </div>
+</div>
+
+<div id="search-panel" class="panel search closed" role="dialog" aria-label="Search all sessions">
+  <div class="pane-head"><span>Search every session</span><button data-close="search-panel" class="icon" aria-label="Close">✕</button></div>
+  <div class="search-controls">
+    <input id="search-input" placeholder="Search transcripts…" autocomplete="off" aria-label="Search query">
+    <select id="search-role" aria-label="Limit to a speaker">
+      <option value="any">Anyone</option>
+      <option value="user">You</option>
+      <option value="assistant">Assistant</option>
+    </select>
+  </div>
+  <div id="search-status" class="hint"></div>
+  <div id="search-results"></div>
+</div>
+
+<div id="share-panel" class="panel share closed" role="dialog" aria-label="Read on your phone">
+  <div class="pane-head"><span>Read on your phone</span><button data-close="share-panel" class="icon" aria-label="Close">✕</button></div>
+  <div class="panel-body">
+    <div id="share-status" class="share-status">Starting…</div>
+    <div id="share-qr" class="share-qr"></div>
+    <a id="share-url" class="share-url" href="#" target="_blank" rel="noopener"></a>
+    <div class="share-actions">
+      <button id="share-copy" type="button">Copy link</button>
+      <button id="share-stop" type="button">Stop sharing</button>
+    </div>
+    <p class="share-note">Point your phone's camera at the code. The link carries a one-time key —
+      the port ignores anyone who does not have it, and sharing ends when this server stops.</p>
+  </div>
+</div>
+
+<div id="help" class="panel help closed" role="dialog" aria-label="Keyboard shortcuts">
+  <div class="pane-head"><span>Keyboard shortcuts</span><button data-close="help" class="icon" aria-label="Close">✕</button></div>
+  <div class="panel-body shortcuts">
+    <div><kbd>/</kbd><span>Search every session</span></div>
+    <div><kbd>j</kbd><kbd>k</kbd><span>Next / previous turn</span></div>
+    <div><kbd>g</kbd><kbd>G</kbd><span>Top / bottom of transcript</span></div>
+    <div><kbd>f</kbd><span>Focus mode — prose only</span></div>
+    <div><kbd>s</kbd><span>Split view</span></div>
+    <div><kbd>o</kbd><span>Outline and raw records</span></div>
+    <div><kbd>a</kbd><span>Reading controls</span></div>
+    <div><kbd>t</kbd><span>Cycle theme</span></div>
+    <div><kbd>m</kbd><span>Read on your phone</span></div>
+    <div><kbd>e</kbd><span>Export as Markdown</span></div>
+    <div><kbd>r</kbd><span>Rescan the archive</span></div>
+    <div><kbd>+</kbd><kbd>-</kbd><span>Font size</span></div>
+    <div><kbd>Esc</kbd><span>Close panels</span></div>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="app.js"></script>
+</body>
+</html>

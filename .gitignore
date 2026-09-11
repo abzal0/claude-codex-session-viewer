@@ -1,0 +1,12 @@
+# Python bytecode and test caches
+__pycache__/
+*.py[cod]
+*.pytest_cache/
+
+# Local environment files
+.env
+.venv/
+venv/
+
+# OS metadata
+.DS_Store
