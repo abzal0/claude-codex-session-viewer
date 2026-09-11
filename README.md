@@ -6,8 +6,6 @@
 ![Privacy: local only](https://img.shields.io/badge/privacy-local%20only-0f6b6f)
 ![Transcripts: Claude + Codex](https://img.shields.io/badge/transcripts-Claude%20%2B%20Codex-7b5ea7)
 
-**Your AI work has a paper trail.**
-
 Session Viewer turns the Claude Code and Codex transcripts already on your machine into a calm, searchable reading experience. Browse decisions, recover an implementation detail, compare approaches, and export the useful parts — all without uploading your conversations to a third party.
 
 It is a small, dependency-free local web app. It reads transcript files in `~/.claude/projects` and `~/.codex/sessions`, then serves the viewer from `127.0.0.1`.
