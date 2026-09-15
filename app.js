@@ -36,6 +36,14 @@ function duration(a, b){
 const size = n => n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.round(n / 1024) + ' KB';
 const compact = n => n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : n >= 1e3 ? Math.round(n / 1e3) + 'k' : String(n || 0);
 const modelName = m => String(m || '').replace(/^claude-/, '').replace(/-\d{8}$/, '');
+const chatId = s => String(s?.id || '').replace(/^(codex|claude):/i, '');
+function resumeCommand(s){
+  const id = chatId(s);
+  if (!id) return '';
+  return String(s?.source || '').toLowerCase() === 'codex'
+    ? `codex resume ${id}`
+    : String(s?.source || '').toLowerCase() === 'claude' ? `claude --resume ${id}` : '';
+}
 
 function toast(message, kind){
   const el = $('#toast');
@@ -751,10 +759,12 @@ function buildInsights(){
     if (/\b(error|failed|exception)\b/i.test(textContent(r.message?.content))) errors++;
   }
   const uniqueTools = [...new Set(tools)];
+  const command = resumeCommand(main.session);
   return `<div class="insight-grid"><div><b>${prompts}</b><span>prompts</span></div><div><b>${replies}</b><span>responses</span></div><div><b>${tools.length}</b><span>tool calls</span></div><div><b>${errors}</b><span>error mentions</span></div></div>`
     + `<section class="insight-section"><b>Tools used</b><p>${uniqueTools.length ? esc(uniqueTools.join(', ')) : 'No tool calls in loaded records.'}</p></section>`
     + `<section class="insight-section"><b>Files touched</b><p>${files.size ? esc([...files].slice(0, 12).join('\n')) : 'No file paths found in loaded tool inputs.'}</p></section>`
-    + `<section class="insight-section"><b>Session duration</b><p>${esc(duration(main.session.start, main.session.end) || 'Unavailable')} · ${main.session.tools || 0} total tool calls</p></section>`;
+    + `<section class="insight-section"><b>Session duration</b><p>${esc(duration(main.session.start, main.session.end) || 'Unavailable')} · ${main.session.tools || 0} total tool calls</p></section>`
+    + (command ? `<section class="insight-section resume-command"><b>Resume command</b><div><code>${esc(command)}</code><button type="button" data-resume-copy="${esc(command)}">Copy</button></div></section>` : '');
 }
 $('#insights-button').onclick = () => {$('#insights-body').innerHTML = buildInsights(); togglePanel('insights')};
 function openOrganize(){
@@ -845,6 +855,12 @@ document.addEventListener('click', event => {
   if (copyOut) {
     navigator.clipboard.writeText(copyOut.closest('.tool-result').querySelector('pre').textContent)
       .then(() => toast('Output copied'), () => toast('Clipboard blocked', 'error'));
+    return;
+  }
+  const resumeCopy = event.target.closest('[data-resume-copy]');
+  if (resumeCopy) {
+    navigator.clipboard.writeText(resumeCopy.dataset.resumeCopy)
+      .then(() => toast('Resume command copied'), () => toast('Clipboard blocked', 'error'));
     return;
   }
   const copy = event.target.closest('[data-copy]');
