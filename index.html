@@ -54,7 +54,7 @@
           <option value="turns">Most turns</option>
           <option value="size">Largest</option>
         </select>
-        <select id="saved-filter" aria-label="Filter saved sessions"><option value="">All sessions</option><option value="starred">Starred</option><option value="tagged">Tagged</option></select>
+        <select id="saved-filter" aria-label="Filter saved sessions"><option value="">All sessions</option><option value="starred">Starred</option><option value="tagged">Tagged</option><option value="archived">Archived</option></select>
       </div>
     </div>
     <div id="session-list"></div>
@@ -105,6 +105,7 @@
     <label>Tags <input id="saved-tags" placeholder="research, pricing, follow-up"></label>
     <label>Private note<textarea id="saved-note" placeholder="Why this session matters…"></textarea></label>
     <label class="check"><input id="saved-star" type="checkbox"> Star this session</label>
+    <label class="check"><input id="saved-archived" type="checkbox"> Hide from history</label>
     <div class="organize-actions"><button id="saved-clear" type="button">Clear saved details</button><button id="saved-save" type="button">Save locally</button></div>
   </div>
 </div>

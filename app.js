@@ -508,6 +508,9 @@ function matches(session){
   if (settings.source && (session.source || 'Claude') !== settings.source) return false;
   if (settings.project && session.cwd !== settings.project) return false;
   const meta = savedFor(session.id);
+  // Archived sessions stay available locally, but do not clutter normal history.
+  if (state.savedFilter !== 'archived' && meta.archived) return false;
+  if (state.savedFilter === 'archived' && !meta.archived) return false;
   if (state.savedFilter === 'starred' && !meta.star) return false;
   if (state.savedFilter === 'tagged' && !(meta.tags || '').trim()) return false;
   if (!state.filter) return true;
@@ -771,13 +774,16 @@ function openOrganize(){
   if (!main.session) return toast('Open a session first');
   const data = savedFor(main.session.id);
   $('#saved-title').value = data.title || ''; $('#saved-tags').value = data.tags || '';
-  $('#saved-note').value = data.note || ''; $('#saved-star').checked = !!data.star; openPanel('organize');
+  $('#saved-note').value = data.note || ''; $('#saved-star').checked = !!data.star;
+  $('#saved-archived').checked = !!data.archived; openPanel('organize');
 }
 $('#organize-button').onclick = openOrganize;
 $('#saved-save').onclick = () => {
   if (!main.session) return;
-  saved[main.session.id] = {title: $('#saved-title').value.trim(), tags: $('#saved-tags').value.trim(), note: $('#saved-note').value.trim(), star: $('#saved-star').checked};
-  saveSaved(); describeSession({session: main.session, malformed: 0}); renderLibrary(); closeAll(); toast('Saved locally');
+  saved[main.session.id] = {title: $('#saved-title').value.trim(), tags: $('#saved-tags').value.trim(), note: $('#saved-note').value.trim(), star: $('#saved-star').checked, archived: $('#saved-archived').checked};
+  const archived = saved[main.session.id].archived;
+  saveSaved(); describeSession({session: main.session, malformed: 0}); renderLibrary(); closeAll();
+  toast(archived ? 'Session hidden from history' : 'Saved locally');
 };
 $('#saved-clear').onclick = () => {if (!main.session) return; delete saved[main.session.id]; saveSaved(); openOrganize(); renderLibrary(); describeSession({session: main.session, malformed: 0}); toast('Saved details cleared')};
 $('#share-button').onclick = () => $('#share-panel').classList.contains('closed') ? openShare() : closeAll();
