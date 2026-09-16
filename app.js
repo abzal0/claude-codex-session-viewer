@@ -741,10 +741,6 @@ $('#load-earlier').onclick = () => loadEarlier(main);
 $('#split-load-more').onclick = () => loadMore(side);
 $('#split-load-all').onclick = () => loadAll(side);
 $('#split-close').onclick = () => toggleSplit(false);
-$('#export-button').onclick = () => {
-  if (!main.session) return toast('Open a session first');
-  location.href = '/api/export?id=' + encodeURIComponent(main.session.id);
-};
 $('#outline-button').onclick = () => {
   const closed = $('#details').classList.toggle('closed');
   $('#outline-button').setAttribute('aria-pressed', !closed);
@@ -762,12 +758,10 @@ function buildInsights(){
     if (/\b(error|failed|exception)\b/i.test(textContent(r.message?.content))) errors++;
   }
   const uniqueTools = [...new Set(tools)];
-  const command = resumeCommand(main.session);
   return `<div class="insight-grid"><div><b>${prompts}</b><span>prompts</span></div><div><b>${replies}</b><span>responses</span></div><div><b>${tools.length}</b><span>tool calls</span></div><div><b>${errors}</b><span>error mentions</span></div></div>`
     + `<section class="insight-section"><b>Tools used</b><p>${uniqueTools.length ? esc(uniqueTools.join(', ')) : 'No tool calls in loaded records.'}</p></section>`
     + `<section class="insight-section"><b>Files touched</b><p>${files.size ? esc([...files].slice(0, 12).join('\n')) : 'No file paths found in loaded tool inputs.'}</p></section>`
-    + `<section class="insight-section"><b>Session duration</b><p>${esc(duration(main.session.start, main.session.end) || 'Unavailable')} · ${main.session.tools || 0} total tool calls</p></section>`
-    + (command ? `<section class="insight-section resume-command"><b>Resume command</b><div><code>${esc(command)}</code><button type="button" data-resume-copy="${esc(command)}">Copy</button></div></section>` : '');
+    + `<section class="insight-section"><b>Session duration</b><p>${esc(duration(main.session.start, main.session.end) || 'Unavailable')} · ${main.session.tools || 0} total tool calls</p></section>`;
 }
 $('#insights-button').onclick = () => {$('#insights-body').innerHTML = buildInsights(); togglePanel('insights')};
 function openOrganize(){
@@ -775,15 +769,29 @@ function openOrganize(){
   const data = savedFor(main.session.id);
   $('#saved-title').value = data.title || ''; $('#saved-tags').value = data.tags || '';
   $('#saved-note').value = data.note || ''; $('#saved-star').checked = !!data.star;
-  $('#saved-archived').checked = !!data.archived; openPanel('organize');
+  const command = resumeCommand(main.session);
+  $('#saved-copy-resume').hidden = !command;
+  $('#saved-copy-resume').dataset.command = command;
+  $('#saved-archive').textContent = data.archived ? 'Unarchive session' : 'Archive session';
+  $('#saved-archive').setAttribute('aria-pressed', !!data.archived);
+  openPanel('organize');
 }
 $('#organize-button').onclick = openOrganize;
+function saveOrganizeDetails(archived = !!savedFor(main.session.id).archived){
+  saved[main.session.id] = {title: $('#saved-title').value.trim(), tags: $('#saved-tags').value.trim(), note: $('#saved-note').value.trim(), star: $('#saved-star').checked, archived};
+  saveSaved(); describeSession({session: main.session, malformed: 0}); renderLibrary();
+}
 $('#saved-save').onclick = () => {
   if (!main.session) return;
-  saved[main.session.id] = {title: $('#saved-title').value.trim(), tags: $('#saved-tags').value.trim(), note: $('#saved-note').value.trim(), star: $('#saved-star').checked, archived: $('#saved-archived').checked};
-  const archived = saved[main.session.id].archived;
-  saveSaved(); describeSession({session: main.session, malformed: 0}); renderLibrary(); closeAll();
-  toast(archived ? 'Session hidden from history' : 'Saved locally');
+  saveOrganizeDetails(); closeAll(); toast('Saved locally');
+};
+$('#saved-copy-resume').onclick = () => navigator.clipboard.writeText($('#saved-copy-resume').dataset.command)
+  .then(() => toast('Resume command copied'), () => toast('Clipboard blocked', 'error'));
+$('#saved-export').onclick = () => {if (main.session) location.href = '/api/export?id=' + encodeURIComponent(main.session.id)};
+$('#saved-archive').onclick = () => {
+  if (!main.session) return;
+  const archived = !savedFor(main.session.id).archived;
+  saveOrganizeDetails(archived); openOrganize(); toast(archived ? 'Session hidden from history' : 'Session restored to history');
 };
 $('#saved-clear').onclick = () => {if (!main.session) return; delete saved[main.session.id]; saveSaved(); openOrganize(); renderLibrary(); describeSession({session: main.session, malformed: 0}); toast('Saved details cleared')};
 $('#share-button').onclick = () => $('#share-panel').classList.contains('closed') ? openShare() : closeAll();
@@ -863,12 +871,6 @@ document.addEventListener('click', event => {
       .then(() => toast('Output copied'), () => toast('Clipboard blocked', 'error'));
     return;
   }
-  const resumeCopy = event.target.closest('[data-resume-copy]');
-  if (resumeCopy) {
-    navigator.clipboard.writeText(resumeCopy.dataset.resumeCopy)
-      .then(() => toast('Resume command copied'), () => toast('Clipboard blocked', 'error'));
-    return;
-  }
   const copy = event.target.closest('[data-copy]');
   if (copy) {
     copyTurn(copy.closest('[data-pane]').dataset.pane === 'side' ? side : main, +copy.dataset.copy);
@@ -893,7 +895,7 @@ document.addEventListener('keydown', e => {
     f: () => $('#focus-button').click(),
     s: () => $('#split-button').click(),
     a: () => $('#controls-button').click(),
-    e: () => $('#export-button').click(),
+    e: () => $('#organize-button').click(),
     m: () => $('#share-button').click(),
     r: () => $('#refresh').click(),
     t: () => {settings.theme = {auto: 'light', light: 'dark', dark: 'auto'}[settings.theme]; applySettings(); toast('Theme: ' + settings.theme)},

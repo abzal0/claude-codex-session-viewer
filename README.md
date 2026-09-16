@@ -34,7 +34,7 @@ Sessions are grouped by project and include source, recency, turn count, duratio
 
 ### Keep the sessions worth returning to
 
-Star a session, give it a clearer private title, add comma-separated tags, and leave a short note about why it matters. You can also hide a session from the normal history without deleting its transcript; select **Archived** in the saved-session filter to restore it. Saved details live only in your browser's local storage.
+Star a session, give it a clearer private title, add comma-separated tags, and leave a short note about why it matters. You can also hide a session from the normal history without deleting its transcript; select **Archived** in the saved-session filter to find it, then choose **Unarchive session**. Saved details live only in your browser's local storage.
 
 ### See the shape of a session
 

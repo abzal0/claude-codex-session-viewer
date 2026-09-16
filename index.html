@@ -23,8 +23,7 @@
     <button id="focus-button" title="Hide tools and bookkeeping (f)" aria-pressed="false">Focus</button>
     <button id="outline-button" title="Outline and raw records (o)" aria-pressed="false">Outline</button>
     <button id="insights-button" title="Session insights">Insights</button>
-    <button id="organize-button" title="Title, tags and notes">Organize</button>
-    <button id="export-button" title="Download this session as Markdown">Export</button>
+    <button id="organize-button" title="Session actions, title, tags and notes">Actions</button>
     <button id="share-button" title="Open this viewer on your phone (m)" aria-pressed="false">Mobile</button>
     <button id="search-button" title="Search every session (/)">Search</button>
     <button id="controls-button" title="Reading controls (a)">Aa</button>
@@ -98,14 +97,18 @@
   <div id="insights-body" class="panel-body"></div>
 </div>
 
-<div id="organize" class="panel closed" role="dialog" aria-label="Organize session">
-  <div class="pane-head"><span>Organize this session</span><button data-close="organize" class="icon" aria-label="Close">✕</button></div>
+<div id="organize" class="panel closed" role="dialog" aria-label="Session actions">
+  <div class="pane-head"><span>Session actions</span><button data-close="organize" class="icon" aria-label="Close">✕</button></div>
   <div class="panel-body organize-body">
+    <div class="session-actions">
+      <button id="saved-copy-resume" type="button">Copy resume command</button>
+      <button id="saved-export" type="button">Export Markdown</button>
+      <button id="saved-archive" type="button">Archive session</button>
+    </div>
     <label>Custom title<input id="saved-title" placeholder="Keep transcript title"></label>
     <label>Tags <input id="saved-tags" placeholder="research, pricing, follow-up"></label>
     <label>Private note<textarea id="saved-note" placeholder="Why this session matters…"></textarea></label>
     <label class="check"><input id="saved-star" type="checkbox"> Star this session</label>
-    <label class="check"><input id="saved-archived" type="checkbox"> Hide from history</label>
     <div class="organize-actions"><button id="saved-clear" type="button">Clear saved details</button><button id="saved-save" type="button">Save locally</button></div>
   </div>
 </div>
@@ -167,7 +170,7 @@
     <div><kbd>a</kbd><span>Reading controls</span></div>
     <div><kbd>t</kbd><span>Cycle theme</span></div>
     <div><kbd>m</kbd><span>Read on your phone</span></div>
-    <div><kbd>e</kbd><span>Export as Markdown</span></div>
+    <div><kbd>e</kbd><span>Session actions</span></div>
     <div><kbd>r</kbd><span>Rescan the archive</span></div>
     <div><kbd>+</kbd><kbd>-</kbd><span>Font size</span></div>
     <div><kbd>Esc</kbd><span>Close panels</span></div>
